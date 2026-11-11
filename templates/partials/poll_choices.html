@@ -1,0 +1,23 @@
+{# Oy butonları ve/veya sonuçlar. Beklenen: poll (attach_vote_state uygulanmış) #}
+<div class="poll-choices" data-poll-choices>
+  {% if poll.can_vote %}
+    <form method="post" action="{% url 'vote' poll.pk %}" class="vote-form" data-vote-form>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}{% if request.GET.sayfa %}?sayfa={{ request.GET.sayfa|urlencode }}{% endif %}#anket-{{ poll.pk }}">
+      <div class="choice-list">
+        {% for row in poll.results %}
+          <button type="submit" name="choice" value="{{ row.id }}" class="choice-pill choice-pill--{{ row.order }}">{{ row.text }}</button>
+        {% endfor %}
+      </div>
+    </form>
+  {% endif %}
+
+  {% if poll.show_results %}
+    {% if poll.can_vote %}<p class="results__note">Sonuçlar (anketin sahibi olarak görüyorsun):</p>{% endif %}
+    {% include "partials/poll_results.html" with results=poll.results %}
+  {% elif poll.can_vote %}
+    <p class="results__note">Sonuçları görmek için oy ver.</p>
+  {% endif %}
+
+  <p class="vote-message" data-vote-message role="status" aria-live="polite"></p>
+</div>

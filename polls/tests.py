@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from accounts.models import User
 
-from .models import Choice, Poll
+from .models import Choice, Poll, Vote
 
 PASSWORD = "Gizli-Parola-987"
 
@@ -167,3 +167,135 @@ class ListingTests(TestCase):
     def test_my_polls_requires_login(self):
         response = self.client.get(reverse("my_polls"))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('my_polls')}")
+
+
+class VoteTests(TestCase):
+    def setUp(self):
+        self.owner = make_user("sahip")
+        self.poll = make_poll(self.owner, choices=("Sinema", "Restoran", "Evde kal"))
+        self.sinema, self.restoran, self.evde = self.poll.choices.all()
+        self.url = reverse("vote", args=[self.poll.pk])
+        self.detail = reverse("poll_detail", args=[self.poll.pk])
+
+    def vote_json(self, choice, client=None):
+        return (client or self.client).post(self.url, {"choice": choice.pk}, HTTP_ACCEPT="application/json")
+
+    def test_guest_vote_json_sets_cookie(self):
+        response = self.vote_json(self.sinema)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["ok"], True)
+        self.assertEqual(data["total"], 1)
+        self.assertEqual(data["voted_choice_id"], self.sinema.pk)
+        self.assertEqual([r["id"] for r in data["results"]], [self.sinema.pk, self.restoran.pk, self.evde.pk])
+        self.assertIn("kz_voter", response.cookies)
+        vote = Vote.objects.get()
+        self.assertTrue(vote.voter_key.startswith("a:"))
+        self.assertIsNone(vote.user)
+
+    def test_guest_second_vote_rejected(self):
+        self.vote_json(self.sinema)
+        response = self.vote_json(self.restoran)
+        self.assertEqual(response.status_code, 409)
+        data = response.json()
+        self.assertEqual(data["error"], "Bu ankete zaten oy verdin.")
+        self.assertEqual(data["voted_choice_id"], self.sinema.pk)
+        self.assertEqual(Vote.objects.count(), 1)
+
+    def test_member_vote_and_second_attempt(self):
+        voter = make_user("uye")
+        self.client.force_login(voter)
+        self.assertEqual(self.vote_json(self.restoran).status_code, 200)
+        vote = Vote.objects.get()
+        self.assertEqual(vote.voter_key, f"u:{voter.pk}")
+        self.assertEqual(vote.user, voter)
+        response = self.vote_json(self.sinema)
+        self.assertEqual(response.json()["error"], "Bu ankete zaten oy verdin.")
+
+    def test_form_post_without_js(self):
+        response = self.client.post(self.url, {"choice": self.evde.pk}, follow=True)
+        self.assertRedirects(response, self.detail)
+        self.assertContains(response, "Oyun kaydedildi!")
+        response = self.client.post(self.url, {"choice": self.sinema.pk}, follow=True)
+        self.assertContains(response, "Bu ankete zaten oy verdin.")
+        self.assertEqual(Vote.objects.count(), 1)
+
+    def test_form_post_redirects_to_safe_next(self):
+        response = self.client.post(self.url, {"choice": self.evde.pk, "next": "/?sayfa=2#anket-1"})
+        self.assertRedirects(response, "/?sayfa=2#anket-1", fetch_redirect_response=False)
+        response = self.client.post(self.url, {"choice": self.evde.pk, "next": "https://kotu.example.com/"})
+        self.assertRedirects(response, self.detail)
+
+    def test_choice_from_other_poll_rejected(self):
+        other = make_poll(self.owner, question="Başka bir anket")
+        response = self.client.post(self.url, {"choice": other.choices.first().pk}, HTTP_ACCEPT="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "Geçersiz seçenek.")
+        self.assertFalse(Vote.objects.exists())
+
+    def test_invalid_choice_values_rejected(self):
+        for value in ["", "abc", "999999"]:
+            response = self.client.post(self.url, {"choice": value}, HTTP_ACCEPT="application/json")
+            self.assertEqual(response.status_code, 400)
+        self.assertFalse(Vote.objects.exists())
+
+    def test_vote_requires_post(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    def test_tampered_cookie_gets_new_key(self):
+        self.client.cookies["kz_voter"] = "sahte-deger"
+        self.assertEqual(self.vote_json(self.sinema).status_code, 200)
+        self.assertNotEqual(Vote.objects.get().voter_key, "a:sahte-deger")
+
+    def test_percentages_sum_to_about_100(self):
+        for i, choice in enumerate([self.sinema, self.sinema, self.restoran, self.evde, self.evde, self.evde]):
+            Vote.objects.create(poll=self.poll, choice=choice, voter_key=f"a:test-{i}")
+        data = self.vote_json(self.restoran).json()
+        self.assertEqual(data["total"], 7)
+        self.assertAlmostEqual(sum(r["percent"] for r in data["results"]), 100, delta=0.2)
+        leaders = [r["id"] for r in data["results"] if r["leader"]]
+        self.assertEqual(leaders, [self.evde.pk])
+
+    def test_json_never_contains_email(self):
+        self.client.force_login(make_user("uye"))
+        self.assertNotIn("@ornek.com", self.vote_json(self.sinema).content.decode())
+
+
+class ResultVisibilityTests(TestCase):
+    def setUp(self):
+        self.owner = make_user("sahip")
+        self.poll = make_poll(self.owner)
+        self.sinema = self.poll.choices.get(order=0)
+        self.detail = reverse("poll_detail", args=[self.poll.pk])
+        Vote.objects.create(poll=self.poll, choice=self.sinema, voter_key="a:baskasi")
+
+    def test_non_voter_sees_buttons_not_results(self):
+        for url in [self.detail, reverse("home")]:
+            response = self.client.get(url)
+            self.assertContains(response, 'name="choice"')
+            self.assertNotContains(response, "data-results")
+            self.assertContains(response, "Sonuçları görmek için oy ver.")
+            self.assertContains(response, '<span data-total>1</span> oy', html=False)
+
+    def test_voter_sees_results_after_refresh(self):
+        self.client.post(reverse("vote", args=[self.poll.pk]), {"choice": self.sinema.pk})
+        for url in [self.detail, reverse("home")]:
+            response = self.client.get(url)
+            self.assertContains(response, "data-results")
+            self.assertNotContains(response, 'name="choice"')
+            self.assertContains(response, "✓ senin oyun")
+            self.assertContains(response, "%100,0 · 2 oy")
+
+    def test_owner_always_sees_results_and_can_vote(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.detail)
+        self.assertContains(response, "data-results")
+        self.assertContains(response, 'name="choice"')
+        self.assertNotContains(response, "✓ senin oyun")
+
+    def test_member_vote_state_not_shared_with_guest_cookie(self):
+        member = make_user("uye")
+        self.client.force_login(member)
+        self.client.post(reverse("vote", args=[self.poll.pk]), {"choice": self.sinema.pk})
+        self.client.logout()
+        self.assertContains(self.client.get(self.detail), 'name="choice"')

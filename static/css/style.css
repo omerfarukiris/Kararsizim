@@ -46,3 +46,20 @@ body { margin: 0; font-family: system-ui, sans-serif; line-height: 1.5; color: #
 .choice-row { display: flex; gap: 8px; }
 .choice-row input { flex: 1; min-width: 0; padding: 10px; font: inherit; border: 2px solid #1A1530; border-radius: 10px; }
 .choice-row__remove { width: 44px; font-size: 1.3rem; background: #fff; border: 2px solid #1A1530; border-radius: 10px; cursor: pointer; }
+
+/* Aşama 4 — oy butonları ve sonuç çubukları (renkler Aşama 5'te). */
+button.choice-pill { font: inherit; background: #fff; cursor: pointer; }
+button.choice-pill:hover:not(:disabled) { transform: translateY(-1px); }
+button.choice-pill:disabled { opacity: 0.6; cursor: wait; }
+.results { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 10px; }
+.result__label { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.result__text { overflow-wrap: anywhere; }
+.result--mine .result__text { font-weight: 700; }
+.result__mine, .result__badge { font-size: 0.8rem; margin-left: 4px; white-space: nowrap; }
+.result__value { color: #6B6580; white-space: nowrap; }
+.result__track { height: 14px; background: #F1ECE6; border: 2px solid #1A1530; border-radius: 999px; overflow: hidden; }
+.result__bar { height: 100%; background: #7B5CFF; animation: result-grow 0.8s ease-out; }
+@keyframes result-grow { from { width: 0; } }
+@media (prefers-reduced-motion: reduce) { .result__bar { animation: none; } }
+.results__note, .vote-message { margin: 0 0 8px; color: #6B6580; font-size: 0.9rem; }
+.vote-message:empty { display: none; }

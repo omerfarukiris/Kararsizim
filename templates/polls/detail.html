@@ -1,26 +1,26 @@
 {% extends "base.html" %}
-{% load poll_tags %}
+{% load static poll_tags %}
 {% block title %}{{ poll.question }} · Kararsızım{% endblock %}
 
 {% block content %}
-<article class="poll-detail">
+<article class="poll-detail" id="anket-{{ poll.pk }}" data-poll>
   <p class="poll-card__meta">@{{ poll.author.username }} · {{ poll.created_at|time_ago }}</p>
   <h1 class="poll-detail__question">{{ poll.question }}</h1>
   {% if poll.description %}
     <div class="poll-detail__description">{{ poll.description|linebreaks }}</div>
   {% endif %}
 
-  <ul class="choice-list">
-    {% for choice in poll.choices.all %}
-      <li class="choice-pill choice-pill--{{ choice.order }}">{{ choice.text }}</li>
-    {% endfor %}
-  </ul>
+  {% include "partials/poll_choices.html" %}
 
   <footer class="poll-card__footer">
-    <span>🗳️ {{ poll.total_votes }} oy</span>
+    <span>🗳️ <span data-total>{{ poll.total_votes }}</span> oy</span>
     {% if poll.author_id == user.id %}
       {% include "partials/delete_form.html" %}
     {% endif %}
   </footer>
 </article>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/vote.js' %}" defer></script>
 {% endblock %}

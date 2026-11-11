@@ -1,0 +1,16 @@
+{# Sonuç çubukları. vote.js aynı yapıyı JSON'dan üretir — değişiklikleri iki yerde de yap. #}
+<ul class="results" data-results>
+  {% for row in results %}
+    <li class="result result--{{ row.order }}{% if row.mine %} result--mine{% endif %}">
+      <div class="result__label">
+        <span class="result__text">
+          {{ row.text }}
+          {% if row.mine %}<span class="result__mine" title="Senin oyun">✓ senin oyun</span>{% endif %}
+          {% if row.leader %}<span class="result__badge">👑 önde</span>{% endif %}
+        </span>
+        <span class="result__value">%{{ row.percent|floatformat:1 }} · {{ row.votes }} oy</span>
+      </div>
+      <div class="result__track"><div class="result__bar" style="width: {{ row.percent|stringformat:'.1f' }}%"></div></div>
+    </li>
+  {% endfor %}
+</ul>
