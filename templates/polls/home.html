@@ -3,8 +3,9 @@
 
 {% block content %}
 <section class="hero">
-  <h1>Karar veremedin mi? Herkese sor.</h1>
-  <p>Anketini aç, herkes oy versin.</p>
+  <p class="hero__eyebrow">🤔 Kararsız mı kaldın?</p>
+  <h1 class="hero__title">Karar veremedin mi? <span class="highlight">Herkese sor.</span></h1>
+  <p class="hero__text">Anketini aç, seçenekleri yaz, gerisini topluluğa bırak.</p>
 </section>
 
 {% if page.object_list %}
@@ -16,8 +17,10 @@
   {% include "partials/pagination.html" %}
 {% else %}
   <section class="empty-state">
-    <p>Burası çok sessiz… Henüz kimse kararsız kalmamış. 🤔</p>
-    <a class="button" href="{% url 'poll_create' %}">İlk anketi sen oluştur</a>
+    <div class="empty-state__emoji" aria-hidden="true">🦗</div>
+    <h2>Burası çok sessiz…</h2>
+    <p>Henüz kimse kararsız kalmamış. Buzu kıran sen ol!</p>
+    <a class="button button--primary" href="{% url 'poll_create' %}">İlk anketi sen oluştur</a>
   </section>
 {% endif %}
 {% endblock %}

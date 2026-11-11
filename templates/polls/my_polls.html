@@ -3,7 +3,10 @@
 {% block title %}Anketlerim · Kararsızım{% endblock %}
 
 {% block content %}
-<h1>Anketlerim</h1>
+<header class="page-header">
+  <h1>Anketlerim</h1>
+  <a class="button button--primary button--small" href="{% url 'poll_create' %}">+ Yeni anket</a>
+</header>
 
 {% if page.object_list %}
   <div class="poll-list">
@@ -14,8 +17,10 @@
   {% include "partials/pagination.html" %}
 {% else %}
   <section class="empty-state">
-    <p>Henüz anket açmadın.</p>
-    <a class="button" href="{% url 'poll_create' %}">İlk anketini oluştur</a>
+    <div class="empty-state__emoji" aria-hidden="true">📭</div>
+    <h2>Henüz anket açmadın.</h2>
+    <p>Aklını kurcalayan ilk soruyu sor, bakalım herkes ne diyecek.</p>
+    <a class="button button--primary" href="{% url 'poll_create' %}">İlk anketini oluştur</a>
   </section>
 {% endif %}
 {% endblock %}

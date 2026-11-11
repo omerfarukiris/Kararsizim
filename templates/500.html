@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+{# Sunucu hatasında bağlam (kullanıcı, mesajlar) olmayabilir; bu yüzden base.html'i kullanmaz. #}
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bir şeyler ters gitti · Kararsızım</title>
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <main class="container">
+    <section class="empty-state error-page">
+      <p class="error-page__code">500</p>
+      <h1>Bir şeyler ters gitti.</h1>
+      <p>Biz de bu sefer kararsız kaldık. Birazdan tekrar dener misin?</p>
+      <a class="button button--primary" href="/">Ana sayfaya dön</a>
+    </section>
+  </main>
+</body>
+</html>

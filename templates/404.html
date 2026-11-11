@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Sayfa bulunamadı · Kararsızım{% endblock %}
+
+{% block content %}
+<section class="empty-state error-page">
+  <p class="error-page__code">404</p>
+  <h1>Bu sayfa da kararsız kalmış, ortada yok.</h1>
+  <p>Aradığın anket silinmiş ya da adres yanlış olabilir.</p>
+  <a class="button button--primary" href="{% url 'home' %}">Ana sayfaya dön</a>
+</section>
+{% endblock %}

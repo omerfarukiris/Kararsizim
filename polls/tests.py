@@ -299,3 +299,17 @@ class ResultVisibilityTests(TestCase):
         self.client.post(reverse("vote", args=[self.poll.pk]), {"choice": self.sinema.pk})
         self.client.logout()
         self.assertContains(self.client.get(self.detail), 'name="choice"')
+
+
+class ErrorPageTests(TestCase):
+    def test_custom_404_page(self):
+        response = self.client.get("/yok-boyle-sayfa/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Ana sayfaya dön", status_code=404)
+        self.assertNotContains(response, "Traceback", status_code=404)
+
+    def test_500_template_renders_without_context(self):
+        from django.template.loader import render_to_string
+
+        html = render_to_string("500.html")
+        self.assertIn("Bir şeyler ters gitti.", html)

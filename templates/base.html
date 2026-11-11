@@ -4,22 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Kararsızım{% endblock %}</title>
+  <meta name="description" content="Karar veremedin mi? Anket aç, herkes oy versin.">
+  <meta name="theme-color" content="#FFF8F0">
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+  <a class="skip-link" href="#icerik">İçeriğe geç</a>
   {% include "partials/navbar.html" %}
 
-  <main class="container">
+  <main class="container" id="icerik">
     {% if messages %}
-      <div class="messages" role="status">
+      <div class="messages">
         {% for message in messages %}
-          <div class="message message--{{ message.tags }}">{{ message }}</div>
+          <div class="message message--{{ message.tags }}" role="{% if message.level >= 40 %}alert{% else %}status{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" class="message__close" aria-label="Mesajı kapat" onclick="this.parentElement.remove()">×</button>
+          </div>
         {% endfor %}
       </div>
     {% endif %}
 
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="site-footer">
+    <p>Kararsızım · Karar veremeyenlerin buluşma noktası 💬</p>
+  </footer>
 
   {% block scripts %}{% endblock %}
 </body>

@@ -8,7 +8,7 @@
     {% csrf_token %}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
     {% include "partials/form_fields.html" %}
-    <button type="submit" class="button">Kayıt Ol</button>
+    <button type="submit" class="button button--primary button--block">Kayıt Ol</button>
   </form>
   <p class="auth-card__alt">Zaten üye misin?
     <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Giriş yap</a>
