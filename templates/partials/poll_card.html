@@ -1,0 +1,19 @@
+{% load poll_tags %}
+{# Beklenen bağlam: poll (vote_count annotate edilmiş, choices prefetch edilmiş) #}
+<article class="poll-card">
+  <p class="poll-card__meta">@{{ poll.author.username }} · {{ poll.created_at|time_ago }}</p>
+  <h2 class="poll-card__question"><a href="{% url 'poll_detail' poll.pk %}">{{ poll.question }}</a></h2>
+
+  <ul class="choice-list">
+    {% for choice in poll.choices.all %}
+      <li class="choice-pill choice-pill--{{ choice.order }}">{{ choice.text }}</li>
+    {% endfor %}
+  </ul>
+
+  <footer class="poll-card__footer">
+    <span>🗳️ {{ poll.total_votes }} oy</span>
+    {% if show_delete and poll.author_id == user.id %}
+      {% include "partials/delete_form.html" %}
+    {% endif %}
+  </footer>
+</article>

@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'poll_delete' poll.pk %}" class="inline-form"
+      onsubmit="return confirm('Bu anketi silmek istediğine emin misin? Bu işlem geri alınamaz.');">
+  {% csrf_token %}
+  <button type="submit" class="button button--danger button--small">Sil</button>
+</form>

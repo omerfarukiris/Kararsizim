@@ -3,6 +3,20 @@
 {% block content %}
 <section class="hero">
   <h1>Karar veremedin mi? Herkese sor.</h1>
-  {# Anket listesi Aşama 3'te eklenecek. #}
+  <p>Anketini aç, herkes oy versin.</p>
 </section>
+
+{% if page.object_list %}
+  <div class="poll-list">
+    {% for poll in page.object_list %}
+      {% include "partials/poll_card.html" %}
+    {% endfor %}
+  </div>
+  {% include "partials/pagination.html" %}
+{% else %}
+  <section class="empty-state">
+    <p>Burası çok sessiz… Henüz kimse kararsız kalmamış. 🤔</p>
+    <a class="button" href="{% url 'poll_create' %}">İlk anketi sen oluştur</a>
+  </section>
+{% endif %}
 {% endblock %}

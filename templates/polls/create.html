@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Anket Oluştur · Kararsızım{% endblock %}
+
+{% block content %}
+<section class="form-card">
+  <h1>Anket Oluştur</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="form-errors" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    {% for field in form %}
+      {% if field.name != "choices" %}
+        <div class="field{% if field.errors %} field--error{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <fieldset class="field choices{% if form.choices.errors %} field--error{% endif %}">
+      <legend>Seçenekler <span class="field__help">(2–5 arası)</span></legend>
+      <div class="choices__list" data-choices data-min="2" data-max="5">
+        {% for value in form.choice_inputs %}
+          <div class="choice-row" data-choice-row>
+            <label class="visually-hidden" for="choice-{{ forloop.counter }}">Seçenek {{ forloop.counter }}</label>
+            <input type="text" id="choice-{{ forloop.counter }}" name="choices" value="{{ value }}"
+                   maxlength="100" placeholder="Seçenek {{ forloop.counter }}">
+          </div>
+        {% endfor %}
+      </div>
+      {% for error in form.choices.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+    </fieldset>
+
+    <button type="submit" class="button">Anketi Yayınla</button>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/create-poll.js' %}" defer></script>
+{% endblock %}

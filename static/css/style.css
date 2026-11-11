@@ -19,3 +19,30 @@ body { margin: 0; font-family: system-ui, sans-serif; line-height: 1.5; color: #
 .field__help ul { margin: 4px 0 0; padding-left: 18px; }
 .button { padding: 10px 18px; font: inherit; font-weight: 600; color: #fff; background: #7B5CFF; border: 2px solid #1A1530; border-radius: 999px; cursor: pointer; }
 :focus-visible { outline: 3px solid #FF4D8D; outline-offset: 2px; }
+
+/* Aşama 3 — sade yerleşim; renkler ve son tasarım Aşama 5'te. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.button { display: inline-block; text-decoration: none; }
+.button--small { padding: 6px 12px; font-size: 0.9rem; }
+.button--ghost { color: #1A1530; background: #fff; }
+.button--danger { background: #FF4D8D; }
+.hero { margin: 16px 0 24px; }
+.hero h1 { margin: 0 0 4px; }
+.poll-list { display: grid; gap: 16px; }
+.poll-card, .poll-detail, .form-card, .empty-state { padding: 16px 20px; background: #fff; border: 2px solid #1A1530; border-radius: 18px; }
+.poll-card__meta { margin: 0; color: #6B6580; font-size: 0.9rem; }
+.poll-card__question { margin: 4px 0 12px; font-size: 1.3rem; overflow-wrap: anywhere; }
+.poll-card__question a { color: inherit; text-decoration: none; }
+.poll-detail__question { font-size: 2rem; margin: 4px 0 8px; overflow-wrap: anywhere; }
+.choice-list { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.choice-pill { padding: 6px 14px; border: 2px solid #1A1530; border-radius: 999px; overflow-wrap: anywhere; }
+.poll-card__footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pagination { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
+.empty-state { text-align: center; }
+.field textarea { width: 100%; padding: 10px; font: inherit; border: 2px solid #1A1530; border-radius: 10px; }
+.choices { border: 0; padding: 0; margin: 0 0 16px; }
+.choices legend { padding: 0; margin-bottom: 6px; }
+.choices__list { display: grid; gap: 8px; margin-bottom: 8px; }
+.choice-row { display: flex; gap: 8px; }
+.choice-row input { flex: 1; min-width: 0; padding: 10px; font: inherit; border: 2px solid #1A1530; border-radius: 10px; }
+.choice-row__remove { width: 44px; font-size: 1.3rem; background: #fff; border: 2px solid #1A1530; border-radius: 10px; cursor: pointer; }
