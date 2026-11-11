@@ -25,7 +25,9 @@ Sanal ortam `.venv` (Python 3.12; 3.14 değil). Aktive etmeden `.venv/bin/python
 .venv/bin/python manage.py test polls.tests.VoteTests.test_duplicate_vote   # tek test
 ```
 
-Henüz test dosyası yok. Test eklenecekse Django'nun test runner'ı (`django.test.TestCase`) kullanılır; ek test paketi yok. Linter/formatter tanımlı değil.
+Supabase'e migration (session pooler, `.env`'deki `DATABASE_URL_DIRECT`): `DJANGO_DB_DIRECT=1 .venv/bin/python manage.py migrate`; ardından `scripts/enable_rls.sql` çalıştırılır. `.env`'de `DATABASE_URL` doluyken testler de Supabase'e gider; lokal SQLite için komutun başına `DATABASE_URL=` ekle. Production `vercel.json` ile Frankfurt (`fra1`) bölgesinde çalışır.
+
+Testler `accounts/tests.py` ve `polls/tests.py` içinde, Django'nun test runner'ı (`django.test.TestCase`) ile; ek test paketi yok. Linter/formatter tanımlı değil.
 
 ## Mimari
 
@@ -35,6 +37,10 @@ Henüz test dosyası yok. Test eklenecekse Django'nun test runner'ı (`django.te
 - Anket formu (`polls/forms.py`): seçenekler aynı isimli tekrarlanan `choices` input'ları olarak gönderilir ve `ChoiceListField` ile liste halinde okunur (kırpma, boşları atma, 2–5 adet, harf büyüklüğünden bağımsız tekrar kontrolü). Sunucu her zaman 5 kutu çizer (`form.choice_inputs`); `create-poll.js` boş fazlalıkları kaldırır. Misafiri uyarı mesajıyla girişe yönlendiren `member_required` decorator'ı `polls/views.py` içindedir. Zaman gösterimi için `{% load poll_tags %}` ve `time_ago` filtresi kullanılır (`timesince` yerine; bir dakikadan yeniyse "az önce").
 - Oylama: `polls/utils.py` içinde `get_voter_key` (salt okuma, çerez üretmez), `get_or_create_voter_key` + `set_voter_cookie` (oy anında) ve `attach_vote_state` vardır. Listeleyen her view anketlere `attach_vote_state` uygulamalıdır; şablonlar `poll.can_vote`, `poll.show_results`, `poll.results` alanlarına dayanır ve `poll_queryset()` seçenekleri `vote_count` annotate ederek prefetch eder. `vote` view'ı `Accept: application/json` gelirse JSON (200 / 400 geçersiz seçenek / 409 zaten oy verdin, sonuçlarla birlikte), gelmezse mesaj + güvenli `next` redirect döner. Sonuç çubuğu HTML'i iki yerde üretilir: `templates/partials/poll_results.html` ve `static/js/vote.js` içindeki `renderResults` — birini değiştirirsen diğerini de güncelle.
 - `templates/` ve `static/` proje kökündedir (uygulama içinde değil). JS dosyaları (`vote.js`, `create-poll.js`) yalnızca progressive enhancement içindir: tüm form ve oy akışları JS kapalıyken de çalışmalı ve doğrulama sunucu tarafında yapılmalı.
+
+## Tasarım
+
+Tüm stil `static/css/style.css` içinde, `:root` değişkenleriyle (plan Bölüm 7). Seçenek rengi `order` ile `.choice-pill--N` / `.result--N` sınıflarından gelir (0–4: pembe, mor, sarı, mint, turuncu). Beyaz yazı taşıyan mor zeminler kontrast için `--purple-strong` kullanır; `--purple` yalnızca dekor ve sonuç çubuklarında. 600px altında navbar sabit değildir ve iki satıra düşer. `templates/500.html` bilerek `base.html`'i kullanmaz (hata anında bağlam olmayabilir).
 
 ## Değişmez kurallar
 

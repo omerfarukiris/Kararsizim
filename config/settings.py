@@ -87,9 +87,16 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # --- Veritabanı -------------------------------------------------------------
-# DATABASE_URL boşsa SQLite, doluysa Postgres (Supabase transaction pooler).
+# DATABASE_URL boşsa SQLite, doluysa Postgres (Supabase transaction pooler, port 6543).
+# Migration'lar için session pooler (port 5432) kullanmak üzere:
+#   DJANGO_DB_DIRECT=1 python manage.py migrate
+# Bu durumda DATABASE_URL_DIRECT okunur.
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+if env_bool("DJANGO_DB_DIRECT"):
+    DATABASE_URL = os.environ.get("DATABASE_URL_DIRECT", "").strip()
+    if not DATABASE_URL:
+        raise ImproperlyConfigured("DJANGO_DB_DIRECT=1 için DATABASE_URL_DIRECT tanımlı olmalı.")
 
 if DATABASE_URL:
     DATABASES = {
