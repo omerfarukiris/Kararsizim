@@ -1,0 +1,5 @@
+[project]
+name = "kararsizim"
+version = "0.1.0"
+description = "Kararsız kaldığın konularda herkese sor."
+requires-python = ">=3.12,<3.13"
