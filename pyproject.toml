@@ -3,3 +3,11 @@ name = "kararsizim"
 version = "0.1.0"
 description = "Kararsız kaldığın konularda herkese sor."
 requires-python = ">=3.12,<3.13"
+# Vercel bağımlılıkları buradan kurar; requirements.txt ile aynı tutulmalı.
+dependencies = [
+    "Django>=5.0,<6.0",
+    "psycopg[binary]>=3.1",
+    "dj-database-url>=2.1",
+    "whitenoise>=6.6",
+    "python-dotenv>=1.0",
+]
