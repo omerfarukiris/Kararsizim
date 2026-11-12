@@ -88,7 +88,8 @@ def vote(request, pk):
 
     choice = None
     choice_id = request.POST.get("choice", "")
-    if choice_id.isdigit():
+    # isascii(): "²" gibi Unicode rakamlar isdigit() geçer ama int()'te patlar.
+    if choice_id.isascii() and choice_id.isdigit():
         # Seçenek bu ankete ait olmalı; başka anketin seçeneği reddedilir.
         choice = Choice.objects.filter(pk=int(choice_id), poll=poll).first()
     if choice is None:

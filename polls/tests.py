@@ -234,7 +234,7 @@ class VoteTests(TestCase):
         self.assertFalse(Vote.objects.exists())
 
     def test_invalid_choice_values_rejected(self):
-        for value in ["", "abc", "999999"]:
+        for value in ["", "abc", "999999", "²", "-1", "1.5"]:
             response = self.client.post(self.url, {"choice": value}, HTTP_ACCEPT="application/json")
             self.assertEqual(response.status_code, 400)
         self.assertFalse(Vote.objects.exists())
