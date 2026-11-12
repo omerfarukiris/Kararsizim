@@ -61,7 +61,14 @@ Testler: `python manage.py test` (lokalde `DATABASE_URL` boşken SQLite ile çal
 
 - `DEBUG=False` iken: HTTP → HTTPS yönlendirme, HSTS, yalnızca HTTPS çerezleri, `X-Frame-Options: DENY`, `nosniff` açık.
 - Supabase'de tüm tablolarda RLS açık ve `anon`/`authenticated` rolleri için `api_erisimi_yok` policy'si (`USING (false)`) var; Supabase REST API'si tablolara erişemez. Django `postgres` rolüyle (tablo sahibi) bağlandığı için etkilenmez. Yeni tablolar için [scripts/enable_rls.sql](scripts/enable_rls.sql) tekrar çalıştırılır.
-- Hız sınırı (giriş, kayıt, oy) yok. Yayına almadan önce Vercel **Firewall → Rate Limiting** ile `/giris/`, `/kayit/` ve `/anket/*/oy/` için kural eklenmesi önerilir.
+- Uygulama kodunda hız sınırı yok; serverless ortamda istekler arası bellek paylaşılmadığı için bu iş Vercel Firewall'a bırakıldı. **Vercel → Proje → Firewall → Configure → + New Rule** ile şu iki kural eklenmeli (aksiyon: **Rate Limit**, algoritma: **Fixed Window**, anahtar: **IP Address**):
+
+  | Kural | Koşul | Sınır |
+  |---|---|---|
+  | Oy hız sınırı | Request Path **matches regex** `^/anket/[0-9]+/oy/?$` **ve** Method **equals** `POST` | 60 saniyede 10 istek |
+  | Giriş/kayıt hız sınırı | Request Path **is any of** `/giris/`, `/kayit/`, `/admin/login/` **ve** Method **equals** `POST` | 60 saniyede 5 istek |
+
+  Sınır aşılınca Vercel `429 Too Many Requests` döner. Aynı IP'yi paylaşan kullanıcılar (mobil operatörlerin CGNAT'ı, okul/şirket ağları) için sınırlar bilerek cömert tutuldu.
 
 ### Canlı kontrol listesi
 
