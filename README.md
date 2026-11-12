@@ -61,14 +61,13 @@ Testler: `python manage.py test` (lokalde `DATABASE_URL` boşken SQLite ile çal
 
 - `DEBUG=False` iken: HTTP → HTTPS yönlendirme, HSTS, yalnızca HTTPS çerezleri, `X-Frame-Options: DENY`, `nosniff` açık.
 - Supabase'de tüm tablolarda RLS açık ve `anon`/`authenticated` rolleri için `api_erisimi_yok` policy'si (`USING (false)`) var; Supabase REST API'si tablolara erişemez. Django `postgres` rolüyle (tablo sahibi) bağlandığı için etkilenmez. Yeni tablolar için [scripts/enable_rls.sql](scripts/enable_rls.sql) tekrar çalıştırılır.
-- Uygulama kodunda hız sınırı yok; serverless ortamda istekler arası bellek paylaşılmadığı için bu iş Vercel Firewall'a bırakıldı. **Vercel → Proje → Firewall → Configure → + New Rule** ile şu iki kural eklenmeli (aksiyon: **Rate Limit**, algoritma: **Fixed Window**, anahtar: **IP Address**):
+- Uygulama kodunda hız sınırı yok; serverless ortamda istekler arası bellek paylaşılmadığı için bu iş Vercel Firewall'a bırakıldı. Yayındaki kural (**Vercel → Proje → Firewall → Rules**):
 
-  | Kural | Koşul | Sınır |
+  | Kural | Koşul (gruplar arasında VEYA) | Sınır |
   |---|---|---|
-  | Oy hız sınırı | Request Path **matches regex** `^/anket/[0-9]+/oy/?$` **ve** Method **equals** `POST` | 60 saniyede 10 istek |
-  | Giriş/kayıt hız sınırı | Request Path **is any of** `/giris/`, `/kayit/`, `/admin/login/` **ve** Method **equals** `POST` | 60 saniyede 5 istek |
+  | `Oy ve giris hiz siniri` | Method `POST` **ve** Request Path: `^/anket/[0-9]+/oy/?$` (regex) **veya** `/giris/` **veya** `/kayit/` **veya** `/admin/login/` ile başlayan | IP başına 60 saniyede 10 istek (Fixed Window), aşılınca `429` |
 
-  Sınır aşılınca Vercel `429 Too Many Requests` döner. Aynı IP'yi paylaşan kullanıcılar (mobil operatörlerin CGNAT'ı, okul/şirket ağları) için sınırlar bilerek cömert tutuldu.
+  Hobby planı tek hız sınırı kuralına izin verdiği için oy ve giriş/kayıt/admin tek kuralda birleştirildi; sayaç bu adresler arasında IP başına ortaktır. Sınır, aynı IP'yi paylaşan kullanıcılar (mobil operatörlerin CGNAT'ı, okul/şirket ağları) için bilerek cömert tutuldu. Pro plana geçilirse giriş/kayıt için ayrı ve daha sıkı (ör. 60 saniyede 5) bir kural eklenebilir.
 
 ### Canlı kontrol listesi
 
