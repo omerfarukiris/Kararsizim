@@ -39,6 +39,11 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY ortam değişkeni tanımlı olmalı.")
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Vercel her deploy'a kendi adresini verir (VERCEL_URL, VERCEL_BRANCH_URL); Vercel'in
+# deploy sonrası kontrolleri ve preview'lar bu adreslere gelir. Joker yerine yalnızca bunlar.
+for _vercel_host in (os.environ.get("VERCEL_URL"), os.environ.get("VERCEL_BRANCH_URL")):
+    if _vercel_host and _vercel_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_vercel_host)
 # Aynı adresten gelen formlar için gerekmez (Django Origin'i Host ile karşılaştırır).
 # Yalnızca başka bir kökenden POST kabul edilecekse doldurulur; joker (*.vercel.app)
 # kullanmaktan kaçın — Vercel'deki herkesin sitesini güvenilir sayar.
