@@ -39,6 +39,9 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY ortam değişkeni tanımlı olmalı.")
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Aynı adresten gelen formlar için gerekmez (Django Origin'i Host ile karşılaştırır).
+# Yalnızca başka bir kökenden POST kabul edilecekse doldurulur; joker (*.vercel.app)
+# kullanmaktan kaçın — Vercel'deki herkesin sitesini güvenilir sayar.
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
 
@@ -159,6 +162,9 @@ STORAGES = {
         )
     },
 }
+# Manifest'te olmayan bir dosya istenirse hata fırlatmak yerine hash'siz adı kullan;
+# aksi halde tek bir eksik dosya tüm sayfaları (500 sayfası dahil) çökertir.
+WHITENOISE_MANIFEST_STRICT = False
 
 
 # --- Güvenlik (production) --------------------------------------------------
@@ -166,7 +172,13 @@ STORAGES = {
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Vercel HTTPS'i proxy'de sonlandırır; gerçek protokol bu başlıktan okunur.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    # HSTS: tarayıcı siteyi bir süre yalnızca HTTPS ile açar. Kısa başlatıldı;
+    # her şey yolundaysa DJANGO_HSTS_SECONDS=31536000 (1 yıl) yapılabilir.
+    # includeSubDomains/preload bilerek kapalı (geri alınması zor).
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "3600"))
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

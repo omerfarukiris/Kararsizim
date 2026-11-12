@@ -25,9 +25,11 @@ Testler: `python manage.py test` (lokalde `DATABASE_URL` boşken SQLite ile çal
 ### 1. Supabase
 
 1. Supabase'de **Frankfurt (`eu-central-1`)** bölgesinde bir proje oluştur. Veritabanı parolasını kaydet; yalnızca harf, rakam ve `-` kullanmak URL kodlama derdini önler.
-2. Projede **Connect** menüsünden iki bağlantı dizesini al ve `.env`'e yaz. `[YOUR-PASSWORD]` dahil köşeli parantezli yer tutucuların parantezlerini de sil:
+2. Projede **Connect → Direct** menüsünden iki bağlantı dizesini al ve `.env`'e yaz. `[YOUR-PASSWORD]` dahil köşeli parantezli yer tutucuların parantezlerini de sil. Sunucu adını (`aws-0-…` / `aws-1-…`) tahmin etme, Connect'te yazanı kullan; yanlışsa pooler `tenant/user not found` hatası verir:
    - **Transaction pooler** (port 6543) → `DATABASE_URL`
    - **Session pooler** (port 5432) → `DATABASE_URL_DIRECT`
+
+   > Ağın 5432/6543 portlarını engelliyorsa (bağlantı zaman aşımına uğrar) 3. ve 5. adımları lokalden yapamazsın. Bu durumda migration SQL'i lokalde üretilip Supabase **SQL Editor**'de çalıştırılabilir; yönetici için de canlı sitede normal kayıt olup o hesabı SQL ile yetkilendir: `UPDATE accounts_user SET is_staff = true, is_superuser = true WHERE username = '...';`
 3. Migration'ları lokalden, session pooler üzerinden çalıştır (deploy sırasında migration yapılmaz):
    ```bash
    DJANGO_DB_DIRECT=1 python manage.py migrate
@@ -47,11 +49,19 @@ Testler: `python manage.py test` (lokalde `DATABASE_URL` boşken SQLite ile çal
    |---|---|
    | `DJANGO_SECRET_KEY` | Uzun, rastgele bir değer: `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
    | `DJANGO_DEBUG` | `False` |
-   | `DJANGO_ALLOWED_HOSTS` | `.vercel.app` (özel alan adın varsa virgülle ekle) |
-   | `CSRF_TRUSTED_ORIGINS` | `https://*.vercel.app` (özel alan adın varsa `https://alanadin.com` ekle) |
+   | `DJANGO_ALLOWED_HOSTS` | Projenin adresi, örn. `kararsizim.vercel.app` (özel alan adın varsa virgülle ekle). Joker (`.vercel.app`) yalnızca ilk deploy'da adres henüz belli değilken kullanılır. |
    | `DATABASE_URL` | Transaction pooler bağlantı dizesi (port 6543) |
+   | `DJANGO_HSTS_SECONDS` | İsteğe bağlı; varsayılan `3600`. Site sorunsuz çalışıyorsa `31536000`. |
 
-3. Deploy et. `STATIC_ROOT` tanımlı olduğu için `collectstatic` build sırasında çalışır; statik dosyaları WhiteNoise sunar.
+   `CSRF_TRUSTED_ORIGINS` gerekmez; formlar aynı adresten gönderildiği için Django bunu kendisi doğrular. `https://*.vercel.app` gibi bir joker **girme**: Vercel'deki herkesin sitesini güvenilir sayar.
+
+3. Deploy et. `STATIC_ROOT` tanımlı olduğu için `collectstatic` build sırasında çalışır; statik dosyaları WhiteNoise sunar. Bağımlılıklar `pyproject.toml`'dan kurulur.
+
+### Güvenlik notları
+
+- `DEBUG=False` iken: HTTP → HTTPS yönlendirme, HSTS, yalnızca HTTPS çerezleri, `X-Frame-Options: DENY`, `nosniff` açık.
+- Supabase'de tüm tablolarda RLS açık ve policy yok; Supabase REST API'si tablolara erişemez, Django `postgres` rolüyle (tablo sahibi) etkilenmez.
+- Hız sınırı (giriş, kayıt, oy) yok. Yayına almadan önce Vercel **Firewall → Rate Limiting** ile `/giris/`, `/kayit/` ve `/anket/*/oy/` için kural eklenmesi önerilir.
 
 ### Canlı kontrol listesi
 
