@@ -25,7 +25,7 @@ Sanal ortam `.venv` (Python 3.12; 3.14 değil). Aktive etmeden `.venv/bin/python
 .venv/bin/python manage.py test polls.tests.VoteTests.test_duplicate_vote   # tek test
 ```
 
-Supabase'e migration (session pooler, `.env`'deki `DATABASE_URL_DIRECT`): `DJANGO_DB_DIRECT=1 .venv/bin/python manage.py migrate`; ardından `scripts/enable_rls.sql` çalıştırılır. `.env`'de `DATABASE_URL` doluyken testler de Supabase'e gider; lokal SQLite için komutun başına `DATABASE_URL=` ekle. Production `vercel.json` ile Frankfurt (`fra1`) bölgesinde çalışır.
+Supabase'e migration (session pooler, `.env`'deki `DATABASE_URL_DIRECT`): `DJANGO_DB_DIRECT=1 .venv/bin/python manage.py migrate`; ardından `scripts/enable_rls.sql` çalıştırılır (RLS + `anon`/`authenticated` için `api_erisimi_yok` deny policy'si; yeni tablo eklenince tekrar çalıştır). Not: kullanıcının ağı ve bu ortam 5432/6543 portlarına çıkamıyor; migration gerekirse SQL üretilip Supabase MCP ile uygulanır. `.env`'de `DATABASE_URL` doluyken testler de Supabase'e gider; lokal SQLite için komutun başına `DATABASE_URL=` ekle. Production `vercel.json` ile Frankfurt (`fra1`) bölgesinde çalışır.
 
 Testler `accounts/tests.py` ve `polls/tests.py` içinde, Django'nun test runner'ı (`django.test.TestCase`) ile; ek test paketi yok. Linter/formatter tanımlı değil.
 

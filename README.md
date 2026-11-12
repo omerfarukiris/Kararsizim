@@ -60,7 +60,7 @@ Testler: `python manage.py test` (lokalde `DATABASE_URL` boşken SQLite ile çal
 ### Güvenlik notları
 
 - `DEBUG=False` iken: HTTP → HTTPS yönlendirme, HSTS, yalnızca HTTPS çerezleri, `X-Frame-Options: DENY`, `nosniff` açık.
-- Supabase'de tüm tablolarda RLS açık ve policy yok; Supabase REST API'si tablolara erişemez, Django `postgres` rolüyle (tablo sahibi) etkilenmez.
+- Supabase'de tüm tablolarda RLS açık ve `anon`/`authenticated` rolleri için `api_erisimi_yok` policy'si (`USING (false)`) var; Supabase REST API'si tablolara erişemez. Django `postgres` rolüyle (tablo sahibi) bağlandığı için etkilenmez. Yeni tablolar için [scripts/enable_rls.sql](scripts/enable_rls.sql) tekrar çalıştırılır.
 - Hız sınırı (giriş, kayıt, oy) yok. Yayına almadan önce Vercel **Firewall → Rate Limiting** ile `/giris/`, `/kayit/` ve `/anket/*/oy/` için kural eklenmesi önerilir.
 
 ### Canlı kontrol listesi
